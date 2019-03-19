@@ -2,12 +2,12 @@ class EntriesController < ApplicationController
   before_action :set_entry, only: [:show, :update, :destroy]
 
   def index
-    @entries = Entry.all
+    @entries = current_user.entries
     json_response(@entries)
   end
 
   def create
-    @entry = Entry.create!(entry_params)
+    @entry = current_user.entries.create!(entry_params)
     json_response(@entry, :created)
   end
 
