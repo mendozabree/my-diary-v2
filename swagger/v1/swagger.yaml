@@ -1,0 +1,307 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+paths:
+  /signup:
+    post:
+      summary: create a new user account
+      tags:
+      - User
+      requestBody:
+        content:
+          application/json;charset=utf-8:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+              required:
+              - name
+              - email
+              - password
+              - password_confirmation
+      responses:
+        '201':
+          description: user account created
+          content:
+            'application/json;charset=utf-8':
+              schema:
+                title: "UserAccountCreatedResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                  auth_token:
+                    type: string
+                example:
+                  message: "Account created successfully"
+                  auth_token: "string"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json;charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  message: "Validation failed:"
+
+  /auth/login:
+    post:
+      summary: login user
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json;charset=utf-8:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: login successful
+          content:
+            'application/json;charset=utf-8':
+              schema:
+                title: "UserLoggedIn"
+                type: object
+                properties:
+                  auth_token:
+                    type: string
+        '401':
+          $ref: "#/components/responses/401Response"
+
+  /entries:
+    post:
+      summary: create a new entry
+      tags:
+        - entries
+      requestBody:
+        content:
+          application/json;charset=utf-8:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                body:
+                  type: string
+              required:
+                - title
+                - description
+                - body
+      responses:
+        '201':
+          description: entry created
+          content:
+            'application/json;charset=utf-8':
+              schema:
+                $ref: "#/components/schemas/EntryOKResponseSchema"
+        '422':
+          $ref: "#/components/responses/422Response"
+      security:
+        - BearerAuth: []
+    get:
+      summary: get all entries
+      tags:
+        - entries
+      responses:
+        '200':
+          description: all responses
+          content:
+            'application/json;charset=utf-8':
+              schema:
+                title: "EntryCreatedResponse"
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    body:
+                      type: string
+                    created_at:
+                      type: string
+                    updated_at:
+                      type: string
+                    created_by:
+                      type: string
+        '422':
+          $ref: "#/components/responses/422Response"
+      security:
+        - BearerAuth: []
+
+  /entries/{id}:
+      get:
+        summary: get a specific entry
+        tags:
+          - entries
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: integer
+            required: true
+            example: 123
+            description: Numeric ID of the entry
+        responses:
+          '200':
+            description: entry retrieved
+            content:
+              'application/json;charset=utf-8':
+                schema:
+                  $ref: "#/components/schemas/EntryOKResponseSchema"
+          '404':
+            $ref: "#/components/responses/404Response"
+          '422':
+            $ref: "#/components/responses/422Response"
+        security:
+          - BearerAuth: []
+
+      put:
+        summary: update a specific entry
+        tags:
+          - entries
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: integer
+            required: true
+            example: 123
+            description: Numeric ID of the entry
+        requestBody:
+          content:
+            application/json;charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  body:
+                    type: string
+        responses:
+          '204':
+            description: entry updated
+          '404':
+            $ref: "#/components/responses/404Response"
+          '422':
+            $ref: "#/components/responses/422Response"
+        security:
+          - BearerAuth: []
+
+      delete:
+        summary: delete a specific entry
+        tags:
+          - entries
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: integer
+            required: true
+            example: 123
+            description: Numeric ID of the entry
+        responses:
+          '204':
+            description: entry deleted
+          '404':
+            $ref: "#/components/responses/404Response"
+          '422':
+            $ref: "#/components/responses/422Response"
+        security:
+          - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    EntryOKResponseSchema:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        body:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        created_by:
+          type: string
+  responses:
+   400Response:
+     content:
+       application/json;charset=utf-8:
+         schema:
+           type: object
+           properties:
+             error:
+               type: string
+           example:
+             error: "invalid parameters"
+   401Response:
+     description: Unauthorised
+     content:
+       application/json;charset=utf-8:
+         schema:
+           type: object
+           properties:
+             error:
+               type: string
+           example:
+             message: "Invalid Credentials"
+   404Response:
+     description: Failed to find route
+     content:
+       application/json;charset=utf-8:
+         schema:
+           type: object
+           properties:
+             error:
+               type: string
+           example:
+             error: "Couldn't find Entry with 'id'"
+   422Response:
+     description: Invalid Request
+     content:
+       application/json;charset=utf-8:
+         schema:
+           type: object
+           properties:
+             error:
+               type: string
+           example:
+             message: "Missing token"
